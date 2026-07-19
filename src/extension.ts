@@ -1,47 +1,48 @@
 import * as vscode from 'vscode';
-import { DocsProvider, VIEW_ID } from './provider';
-import { initEmoji } from './emoji';
-import { registerCommands } from './commands';
+import { DocsBarView } from './webview';
+import { initGit, onGitChange } from './git';
 
 export function activate(context: vscode.ExtensionContext): void {
-  initEmoji(context.extensionUri);
+  const view = new DocsBarView(context);
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider(DocsBarView.viewId, view, {
+      webviewOptions: { retainContextWhenHidden: true },
+    }),
+  );
 
-  const provider = new DocsProvider();
-  const treeView = vscode.window.createTreeView(VIEW_ID, {
-    treeDataProvider: provider,
-    dragAndDropController: provider,
-    showCollapseAll: true,
-    canSelectMany: true,
-  });
-  context.subscriptions.push(treeView);
-
-  // Refresh (debounced) when the filesystem structure changes.
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  const refreshSoon = () => {
-    if (timer) {
-      clearTimeout(timer);
-    }
-    timer = setTimeout(() => provider.refresh(), 150);
-  };
+  // Refresh (debounced) on filesystem structure changes.
   const watcher = vscode.workspace.createFileSystemWatcher('**/*');
-  watcher.onDidCreate(refreshSoon);
-  watcher.onDidDelete(refreshSoon);
+  watcher.onDidCreate(() => view.refreshSoon());
+  watcher.onDidDelete(() => view.refreshSoon());
   context.subscriptions.push(watcher);
 
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration((e) => {
       if (e.affectsConfiguration('docsBar')) {
-        provider.refresh();
+        void view.refresh();
       }
     }),
-  );
-  context.subscriptions.push(
-    vscode.workspace.onDidChangeWorkspaceFolders(() => provider.refresh()),
+    vscode.workspace.onDidChangeWorkspaceFolders(() => view.refreshSoon()),
   );
 
-  registerCommands(context, provider, treeView);
+  // Git status: init the git extension API, then refresh on any change.
+  let gitSub: vscode.Disposable | undefined;
+  initGit(() => {
+    gitSub?.dispose();
+    gitSub = onGitChange(() => view.refreshSoon());
+    context.subscriptions.push(gitSub);
+    void view.refresh();
+  });
+
+  const cmd = (id: string, fn: () => void) =>
+    context.subscriptions.push(vscode.commands.registerCommand(id, fn));
+  cmd('docsBar.newFile', () => void view.newFileTop());
+  cmd('docsBar.newFolder', () => void view.newFolderTop());
+  cmd('docsBar.expandAll', () => view.expandAll());
+  cmd('docsBar.collapseAll', () => view.collapseAll());
+  cmd('docsBar.refresh', () => void view.refresh());
 }
 
 export function deactivate(): void {
-  /* nothing to clean up beyond disposables */
+  /* disposables handle cleanup */
 }

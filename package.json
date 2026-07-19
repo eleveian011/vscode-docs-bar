@@ -1,8 +1,8 @@
 {
   "name": "vscode-docs-bar",
   "displayName": "Docs Bar",
-  "description": "A lightweight, standalone document navigator: custom drag sort, display-name aliases, emoji folder icons, hidden entries, git status — sitting beside the built-in Explorer.",
-  "version": "0.1.0",
+  "description": "A Notion-style Markdown navigator for VS Code: emoji page icons, display-name aliases, custom drag sort, hidden entries, git status — in a webview sidebar beside the built-in Explorer.",
+  "version": "0.2.0",
   "publisher": "eleveian011",
   "license": "MIT",
   "repository": {
@@ -16,11 +16,11 @@
     "Other"
   ],
   "keywords": [
-    "explorer",
-    "file tree",
+    "markdown",
+    "notion",
     "emoji",
-    "folder icon",
-    "sort"
+    "notes",
+    "sidebar"
   ],
   "main": "./dist/extension.js",
   "activationEvents": [
@@ -41,79 +41,66 @@
         {
           "id": "docsBar",
           "name": "Docs",
-          "icon": "media/icon.svg"
+          "type": "webview"
         }
       ]
     },
-    "viewsWelcome": [
-      {
-        "view": "docsBar",
-        "contents": "打开一个文件夹后，这里会显示你的文档目录。\n[打开文件夹](command:vscode.openFolder)"
-      }
-    ],
     "commands": [
-      { "command": "docsBar.newFile", "title": "新建文件", "icon": "$(new-file)" },
-      { "command": "docsBar.newFolder", "title": "新建目录", "icon": "$(new-folder)" },
-      { "command": "docsBar.expandAll", "title": "全部展开", "icon": "$(expand-all)" },
-      { "command": "docsBar.collapseAll", "title": "全部收起", "icon": "$(collapse-all)" },
-      { "command": "docsBar.refresh", "title": "刷新", "icon": "$(refresh)" },
-      { "command": "docsBar.rename", "title": "重命名" },
-      { "command": "docsBar.copy", "title": "复制" },
-      { "command": "docsBar.paste", "title": "粘贴" },
-      { "command": "docsBar.duplicate", "title": "创建副本" },
-      { "command": "docsBar.copyPath", "title": "复制路径" },
-      { "command": "docsBar.copyRelativePath", "title": "复制相对路径" },
-      { "command": "docsBar.setIcon", "title": "设置图标 (emoji)…" },
-      { "command": "docsBar.setAlias", "title": "设置显示名…" },
-      { "command": "docsBar.hide", "title": "在 Docs Bar 中隐藏" },
-      { "command": "docsBar.unhideAll", "title": "取消隐藏全部" },
-      { "command": "docsBar.revealInFinder", "title": "在 Finder 中显示" },
-      { "command": "docsBar.delete", "title": "删除" }
+      {
+        "command": "docsBar.newFile",
+        "title": "Docs Bar: 新建文件",
+        "icon": "$(new-file)"
+      },
+      {
+        "command": "docsBar.newFolder",
+        "title": "Docs Bar: 新建目录",
+        "icon": "$(new-folder)"
+      },
+      {
+        "command": "docsBar.expandAll",
+        "title": "Docs Bar: 全部展开",
+        "icon": "$(expand-all)"
+      },
+      {
+        "command": "docsBar.collapseAll",
+        "title": "Docs Bar: 全部收起",
+        "icon": "$(collapse-all)"
+      },
+      {
+        "command": "docsBar.refresh",
+        "title": "Docs Bar: 刷新",
+        "icon": "$(refresh)"
+      }
     ],
     "menus": {
       "view/title": [
-        { "command": "docsBar.newFile", "when": "view == docsBar", "group": "navigation@1" },
-        { "command": "docsBar.newFolder", "when": "view == docsBar", "group": "navigation@2" },
-        { "command": "docsBar.expandAll", "when": "view == docsBar", "group": "navigation@3" },
-        { "command": "docsBar.collapseAll", "when": "view == docsBar", "group": "navigation@4" },
-        { "command": "docsBar.refresh", "when": "view == docsBar", "group": "navigation@5" },
-        { "command": "docsBar.unhideAll", "when": "view == docsBar", "group": "1_manage@1" }
-      ],
-      "view/item/context": [
-        { "command": "docsBar.rename", "when": "view == docsBar", "group": "1_mod@1" },
-        { "command": "docsBar.copy", "when": "view == docsBar", "group": "2_clip@1" },
-        { "command": "docsBar.paste", "when": "view == docsBar && viewItem == folder", "group": "2_clip@2" },
-        { "command": "docsBar.duplicate", "when": "view == docsBar", "group": "2_clip@3" },
-        { "command": "docsBar.copyPath", "when": "view == docsBar", "group": "3_path@1" },
-        { "command": "docsBar.copyRelativePath", "when": "view == docsBar", "group": "3_path@2" },
-        { "command": "docsBar.setIcon", "when": "view == docsBar && viewItem == folder", "group": "4_docs@1" },
-        { "command": "docsBar.setAlias", "when": "view == docsBar", "group": "4_docs@2" },
-        { "command": "docsBar.hide", "when": "view == docsBar", "group": "4_docs@3" },
-        { "command": "docsBar.revealInFinder", "when": "view == docsBar", "group": "5_os@1" },
-        { "command": "docsBar.delete", "when": "view == docsBar", "group": "7_del@1" }
-      ],
-      "commandPalette": [
-        { "command": "docsBar.rename", "when": "false" },
-        { "command": "docsBar.copy", "when": "false" },
-        { "command": "docsBar.paste", "when": "false" },
-        { "command": "docsBar.duplicate", "when": "false" },
-        { "command": "docsBar.copyPath", "when": "false" },
-        { "command": "docsBar.copyRelativePath", "when": "false" },
-        { "command": "docsBar.setIcon", "when": "false" },
-        { "command": "docsBar.setAlias", "when": "false" },
-        { "command": "docsBar.hide", "when": "false" },
-        { "command": "docsBar.revealInFinder", "when": "false" },
-        { "command": "docsBar.delete", "when": "false" }
+        {
+          "command": "docsBar.newFile",
+          "when": "view == docsBar",
+          "group": "navigation@1"
+        },
+        {
+          "command": "docsBar.newFolder",
+          "when": "view == docsBar",
+          "group": "navigation@2"
+        },
+        {
+          "command": "docsBar.expandAll",
+          "when": "view == docsBar",
+          "group": "navigation@3"
+        },
+        {
+          "command": "docsBar.collapseAll",
+          "when": "view == docsBar",
+          "group": "navigation@4"
+        },
+        {
+          "command": "docsBar.refresh",
+          "when": "view == docsBar",
+          "group": "navigation@5"
+        }
       ]
     },
-    "keybindings": [
-      { "command": "docsBar.rename", "key": "f2", "when": "focusedView == docsBar" },
-      { "command": "docsBar.copy", "key": "cmd+c", "when": "focusedView == docsBar" },
-      { "command": "docsBar.paste", "key": "cmd+v", "when": "focusedView == docsBar" },
-      { "command": "docsBar.duplicate", "key": "cmd+d", "when": "focusedView == docsBar" },
-      { "command": "docsBar.copyPath", "key": "cmd+alt+c", "when": "focusedView == docsBar" },
-      { "command": "docsBar.delete", "key": "cmd+backspace", "when": "focusedView == docsBar" }
-    ],
     "configuration": {
       "title": "Docs Bar",
       "properties": {
@@ -122,34 +109,61 @@
           "default": "",
           "description": "Docs Bar 的根目录，相对于工作区根。留空则显示整个工作区。例如 \"docs\" 只显示 docs 目录。"
         },
+        "docsBar.markdownOnly": {
+          "type": "boolean",
+          "default": true,
+          "description": "只显示 Markdown 文件与包含 Markdown 的目录（隐藏其他文件和空目录）。"
+        },
+        "docsBar.stripMarkdownExtension": {
+          "type": "boolean",
+          "default": true,
+          "description": "在列表中隐藏 .md / .markdown 后缀（Notion 风格）。"
+        },
         "docsBar.icons": {
           "type": "object",
           "default": {},
-          "additionalProperties": { "type": "string" },
-          "description": "文件夹 → emoji 图标映射，key 为相对工作区根的路径。一般通过右键菜单维护。"
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "路径 → emoji 图标映射。一般通过右键菜单维护。"
         },
         "docsBar.aliases": {
           "type": "object",
           "default": {},
-          "additionalProperties": { "type": "string" },
+          "additionalProperties": {
+            "type": "string"
+          },
           "description": "路径 → 显示名映射（不改真实文件名）。一般通过右键菜单维护。"
         },
         "docsBar.order": {
           "type": "object",
           "default": {},
-          "additionalProperties": { "type": "array", "items": { "type": "string" } },
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "description": "每个父目录下子项的手动排序。一般通过拖拽维护。"
         },
         "docsBar.hidden": {
           "type": "array",
           "default": [],
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "description": "在 Docs Bar 中隐藏的路径列表（相对工作区根）。"
         },
         "docsBar.alwaysHide": {
           "type": "array",
-          "default": [ ".git", ".DS_Store" ],
-          "items": { "type": "string" },
+          "default": [
+            ".git",
+            ".DS_Store",
+            "node_modules"
+          ],
+          "items": {
+            "type": "string"
+          },
           "description": "始终隐藏的文件/目录名（按 basename 匹配）。"
         }
       }
@@ -157,14 +171,12 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run build",
-    "build": "node scripts/copy-assets.mjs && node esbuild.mjs --production",
+    "build": "node esbuild.mjs --production",
     "watch": "node esbuild.mjs --watch",
     "check": "tsc --noEmit",
-    "package": "npx --yes @vscode/vsce package --no-dependencies",
-    "postinstall": "node scripts/copy-assets.mjs"
+    "package": "npx --yes @vscode/vsce package --no-dependencies"
   },
   "devDependencies": {
-    "@twemoji/svg": "^15.0.0",
     "@types/node": "^20.14.0",
     "@types/vscode": "^1.84.0",
     "esbuild": "^0.23.0",
