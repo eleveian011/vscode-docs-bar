@@ -2,7 +2,7 @@
   "name": "vscode-docs-bar",
   "displayName": "Docs Bar",
   "description": "A Notion-style Markdown navigator for VS Code: emoji page icons, display-name aliases, custom drag sort, hidden entries, git status — in a webview sidebar beside the built-in Explorer.",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "publisher": "eleveian011",
   "license": "MIT",
   "repository": {
@@ -31,7 +31,7 @@
       "activitybar": [
         {
           "id": "docsBarContainer",
-          "title": "Docs Bar",
+          "title": "​",
           "icon": "media/icon.svg"
         }
       ]
@@ -141,6 +141,14 @@
       {
         "command": "docsBar.ctx.unhideAll",
         "title": "取消所有隐藏"
+      },
+      {
+        "command": "docsBar.ctx.mdOnlyOn",
+        "title": "$(check) 仅显示 Markdown"
+      },
+      {
+        "command": "docsBar.ctx.mdOnlyOff",
+        "title": "仅显示 Markdown"
       }
     ],
     "menus": {
@@ -234,6 +242,16 @@
           "command": "docsBar.ctx.unhideAll",
           "when": "webviewSection == 'docsBarMore'",
           "group": "2_more@2"
+        },
+        {
+          "command": "docsBar.ctx.mdOnlyOn",
+          "when": "webviewSection == 'docsBarMore' && docsBarMdOnly",
+          "group": "3_toggle@1"
+        },
+        {
+          "command": "docsBar.ctx.mdOnlyOff",
+          "when": "webviewSection == 'docsBarMore' && !docsBarMdOnly",
+          "group": "3_toggle@1"
         }
       ],
       "commandPalette": [
@@ -307,6 +325,14 @@
         },
         {
           "command": "docsBar.ctx.unhideAll",
+          "when": "false"
+        },
+        {
+          "command": "docsBar.ctx.mdOnlyOn",
+          "when": "false"
+        },
+        {
+          "command": "docsBar.ctx.mdOnlyOff",
           "when": "false"
         }
       ]

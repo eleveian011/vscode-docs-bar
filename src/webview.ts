@@ -116,6 +116,10 @@ export class DocsBarView implements vscode.WebviewViewProvider {
       case 'renameTo':
         await this.renameTo(m.key, m.newName);
         return;
+      case 'setAliasTo':
+        await store.setAlias(this.keyToUri(m.key), (m.alias ?? '').trim() || undefined);
+        await this.refresh();
+        return;
     }
   }
 
@@ -242,18 +246,9 @@ export class DocsBarView implements vscode.WebviewViewProvider {
         break;
       }
 
-      case 'setAlias': {
-        const input = await vscode.window.showInputBox({
-          title: '设置显示名',
-          prompt: '留空则恢复真实文件名',
-          value: store.getAlias(uri) ?? '',
-        });
-        if (input === undefined) {
-          return;
-        }
-        await store.setAlias(uri, input.trim() || undefined);
-        break;
-      }
+      case 'setAlias':
+        this.post({ type: 'beginAlias', key });
+        return;
 
       case 'hide':
         await store.addHidden(uri);

@@ -9,7 +9,8 @@ export interface DocNode {
   emoji?: string;
   isDir: boolean;
   isDivider?: boolean;
-  git?: string;
+  git?: string; // single-letter status (files)
+  gitDot?: boolean; // folder whose subtree contains changes
   children?: DocNode[];
 }
 
@@ -102,6 +103,7 @@ function makeNode(
     emoji: store.getIcon(uri),
     isDir,
     git: opts.git.get(uri.fsPath),
+    gitDot: children ? children.some((c) => !!c.git || !!c.gitDot) : undefined,
     children,
   };
 }

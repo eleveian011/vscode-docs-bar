@@ -19,6 +19,11 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration((e) => {
       if (e.affectsConfiguration('docsBar')) {
+        void vscode.commands.executeCommand(
+          'setContext',
+          'docsBarMdOnly',
+          vscode.workspace.getConfiguration('docsBar').get('markdownOnly', true),
+        );
         void view.refresh();
       }
     }),
@@ -75,6 +80,22 @@ export function activate(context: vscode.ExtensionContext): void {
   cmd('docsBar.ctx.newDivider', () => void view.newDivider());
   cmd('docsBar.ctx.refresh', () => void view.refresh());
   cmd('docsBar.ctx.unhideAll', () => void view.runAction('unhideAll', ''));
+
+  // Markdown-only toggle (reflected as a checkmark via the docsBarMdOnly context key).
+  void vscode.commands.executeCommand(
+    'setContext',
+    'docsBarMdOnly',
+    vscode.workspace.getConfiguration('docsBar').get('markdownOnly', true),
+  );
+  const toggleMdOnly = async () => {
+    const config = vscode.workspace.getConfiguration('docsBar');
+    const tgt = vscode.workspace.workspaceFolders?.length
+      ? vscode.ConfigurationTarget.Workspace
+      : vscode.ConfigurationTarget.Global;
+    await config.update('markdownOnly', !config.get('markdownOnly', true), tgt);
+  };
+  cmd('docsBar.ctx.mdOnlyOn', () => void toggleMdOnly());
+  cmd('docsBar.ctx.mdOnlyOff', () => void toggleMdOnly());
 }
 
 export function deactivate(): void {

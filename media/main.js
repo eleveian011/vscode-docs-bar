@@ -141,6 +141,8 @@
       collapseAllLocal();
     } else if (m.type === 'beginRename') {
       beginRename(m.key);
+    } else if (m.type === 'beginAlias') {
+      beginAlias(m.key);
     }
   });
 
@@ -241,9 +243,13 @@
 
     if (n.git) {
       const g = document.createElement('span');
-      g.className = 'git ' + n.git;
+      g.className = 'git';
       g.textContent = n.git;
       row.appendChild(g);
+    } else if (n.gitDot) {
+      const d = document.createElement('span');
+      d.className = 'git-dot';
+      row.appendChild(d);
     }
 
     row.addEventListener('click', () => {
@@ -287,38 +293,33 @@
     return [...app.querySelectorAll('.row')].find((r) => r.dataset.key === key);
   }
 
-  function beginRename(key) {
-    const n = byKey.get(key);
-    if (!n || n.isDivider) return;
-    const row = findRow(key);
-    const labelEl = row && row.querySelector('.label');
-    if (!labelEl) return;
-
+  function fileParts(n) {
     const m = n.isDir ? null : n.name.match(/\.(md|markdown)$/i);
     const ext = m ? m[0] : '';
     const stem = ext ? n.name.slice(0, n.name.length - ext.length) : n.name;
+    return { ext, stem };
+  }
 
+  // Turn a row's label into an in-place text field. onCommit(value) returns true
+  // if it dispatched a change (host will refresh); false → we just re-render.
+  function inlineEdit(key, initial, selectLen, onCommit) {
+    const row = findRow(key);
+    const labelEl = row && row.querySelector('.label');
+    if (!labelEl) return;
     const input = document.createElement('input');
     input.type = 'text';
     input.className = 'rename-input';
-    input.value = stem;
+    input.value = initial;
     labelEl.replaceWith(input);
     input.focus();
     try {
-      input.setSelectionRange(0, stem.length);
+      input.setSelectionRange(0, selectLen);
     } catch {}
-
     let done = false;
     const finish = (commit) => {
       if (done) return;
       done = true;
-      if (commit) {
-        const v = input.value.trim();
-        if (v && v !== stem) {
-          vscode.postMessage({ type: 'renameTo', key, newName: v + ext });
-          return; // host will refresh & re-render
-        }
-      }
+      if (commit && onCommit(input.value.trim())) return;
       render();
     };
     input.addEventListener('keydown', (ev) => {
@@ -334,6 +335,29 @@
     input.addEventListener('blur', () => finish(true));
     input.addEventListener('click', (ev) => ev.stopPropagation());
     input.addEventListener('dblclick', (ev) => ev.stopPropagation());
+  }
+
+  function beginRename(key) {
+    const n = byKey.get(key);
+    if (!n || n.isDivider) return;
+    const { ext, stem } = fileParts(n);
+    inlineEdit(key, stem, stem.length, (v) => {
+      if (v && v !== stem) {
+        vscode.postMessage({ type: 'renameTo', key, newName: v + ext });
+        return true;
+      }
+      return false;
+    });
+  }
+
+  function beginAlias(key) {
+    const n = byKey.get(key);
+    if (!n || n.isDivider) return;
+    const natural = n.isDir ? n.name : fileParts(n).stem;
+    inlineEdit(key, n.label, n.label.length, (v) => {
+      vscode.postMessage({ type: 'setAliasTo', key, alias: v === natural ? '' : v });
+      return true;
+    });
   }
 
   // ---- drag & drop (box-shadow hints, no layout shift) ----
