@@ -189,8 +189,6 @@
         ev.dataTransfer.setData('text/plain', n.key);
         ev.dataTransfer.effectAllowed = 'move';
       });
-      row.addEventListener('dragover', (ev) => onDragOver(ev, row, n));
-      row.addEventListener('drop', (ev) => onDrop(ev, row, n));
       return row;
     }
 
@@ -247,8 +245,6 @@
       ev.dataTransfer.setData('text/plain', n.key);
       ev.dataTransfer.effectAllowed = 'move';
     });
-    row.addEventListener('dragover', (ev) => onDragOver(ev, row, n));
-    row.addEventListener('drop', (ev) => onDrop(ev, row, n));
 
     return row;
   }
@@ -340,53 +336,86 @@
     });
   }
 
-  // ---- drag & drop (box-shadow hints, no layout shift) ----
+  // ---- drag & drop (the whole list is a drop zone → forgiving release) ----
+
+  let dropTarget = null; // { row, n, zone, rect }
 
   function clearHints() {
     for (const r of app.querySelectorAll('.drop-into')) r.classList.remove('drop-into');
     dropline.hidden = true;
   }
 
-  function onDragOver(ev, row, n) {
-    ev.preventDefault();
-    ev.dataTransfer.dropEffect = 'move';
-    clearHints();
-    const rect = row.getBoundingClientRect();
-    const y = ev.clientY - rect.top;
-    let zone;
-    if (n.isDir) {
-      zone = y < rect.height * 0.25 ? 'before' : y > rect.height * 0.75 ? 'after' : 'into';
-    } else {
-      zone = y < rect.height * 0.5 ? 'before' : 'after';
+  // Resolve a drop target for a viewport Y anywhere over the list (gaps included).
+  function computeTarget(clientY) {
+    const rows = [...app.querySelectorAll('.row')];
+    if (!rows.length) return null;
+    for (const row of rows) {
+      const rect = row.getBoundingClientRect();
+      if (clientY >= rect.top && clientY <= rect.bottom) {
+        const n = byKey.get(row.dataset.key);
+        if (!n) continue;
+        const y = clientY - rect.top;
+        let zone;
+        if (n.isDir) {
+          zone = y < rect.height * 0.28 ? 'before' : y > rect.height * 0.72 ? 'after' : 'into';
+        } else {
+          zone = y < rect.height * 0.5 ? 'before' : 'after';
+        }
+        return { row, n, zone, rect };
+      }
     }
-    row.dataset.zone = zone;
-    if (zone === 'into') {
-      row.classList.add('drop-into');
+    // above the first / below the last / in a gap → snap to the nearest edge
+    const firstRect = rows[0].getBoundingClientRect();
+    if (clientY < firstRect.top) {
+      return { row: rows[0], n: byKey.get(rows[0].dataset.key), zone: 'before', rect: firstRect };
+    }
+    const lastRow = rows[rows.length - 1];
+    return {
+      row: lastRow,
+      n: byKey.get(lastRow.dataset.key),
+      zone: 'after',
+      rect: lastRow.getBoundingClientRect(),
+    };
+  }
+
+  function showHint(t) {
+    clearHints();
+    if (!t || !t.n) return;
+    if (t.zone === 'into' && t.n.isDir) {
+      t.row.classList.add('drop-into');
       return;
     }
-    const depth = parseInt(row.style.getPropertyValue('--d') || '0', 10);
+    const depth = parseInt(t.row.style.getPropertyValue('--d') || '0', 10);
     const indent = 8 + depth * 14;
-    dropline.style.top = (zone === 'before' ? rect.top : rect.bottom) - 1 + 'px';
-    dropline.style.left = rect.left + indent + 'px';
-    dropline.style.width = Math.max(0, rect.width - indent - 8) + 'px';
+    dropline.style.top = (t.zone === 'before' ? t.rect.top : t.rect.bottom) - 1 + 'px';
+    dropline.style.left = t.rect.left + indent + 'px';
+    dropline.style.width = Math.max(0, t.rect.width - indent - 8) + 'px';
     dropline.hidden = false;
   }
 
-  function onDrop(ev, row, n) {
+  app.addEventListener('dragover', (ev) => {
+    ev.preventDefault();
+    ev.dataTransfer.dropEffect = 'move';
+    dropTarget = computeTarget(ev.clientY);
+    showHint(dropTarget);
+  });
+
+  app.addEventListener('drop', (ev) => {
     ev.preventDefault();
     const movedKey = ev.dataTransfer.getData('text/plain');
-    const zone = row.dataset.zone || 'before';
+    const t = dropTarget || computeTarget(ev.clientY);
     clearHints();
-    if (!movedKey || movedKey === n.key) return;
-
+    dropTarget = null;
+    if (!movedKey || !t || !t.n || movedKey === t.n.key) return;
+    const n = t.n;
     let parentKey;
     let beforeKey;
-    if (zone === 'into' && n.isDir) {
+    if (t.zone === 'into' && n.isDir) {
       parentKey = n.key;
       beforeKey = null;
     } else {
       parentKey = n.parentKey;
-      if (zone === 'before') {
+      if (t.zone === 'before') {
         beforeKey = n.key;
       } else {
         const sibs = siblings.get(n.parentKey) || [];
@@ -397,11 +426,17 @@
     const movedNode = byKey.get(movedKey);
     const movedParentKey = movedNode ? movedNode.parentKey : '';
     vscode.postMessage({ type: 'reorder', moved: [movedKey], parentKey, beforeKey, movedParentKey });
-  }
+  });
 
-  app.addEventListener('dragend', clearHints);
+  app.addEventListener('dragend', () => {
+    dropTarget = null;
+    clearHints();
+  });
   app.addEventListener('dragleave', (ev) => {
-    if (ev.target === app) clearHints();
+    if (ev.target === app) {
+      dropTarget = null;
+      clearHints();
+    }
   });
 
   // ---- keyboard (view focused) ----

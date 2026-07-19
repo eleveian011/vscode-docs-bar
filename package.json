@@ -2,7 +2,7 @@
   "name": "vscode-docs-bar",
   "displayName": "Docs Bar",
   "description": "A Notion-style Markdown navigator for VS Code: emoji page icons, display-name aliases, custom drag sort, hidden entries, git status — in a webview sidebar beside the built-in Explorer.",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "publisher": "eleveian011",
   "license": "MIT",
   "repository": {
@@ -417,6 +417,7 @@
   "devDependencies": {
     "@types/node": "^20.14.0",
     "@types/vscode": "^1.84.0",
+    "@vscode/codicons": "^0.0.45",
     "esbuild": "^0.23.0",
     "typescript": "^5.5.0",
     "unicode-emoji-json": "^0.9.0"
