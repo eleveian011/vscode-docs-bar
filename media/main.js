@@ -139,6 +139,8 @@
       expandAllLocal();
     } else if (m.type === 'collapseAll') {
       collapseAllLocal();
+    } else if (m.type === 'beginRename') {
+      beginRename(m.key);
     }
   });
 
@@ -279,6 +281,61 @@
     render();
   }
 
+  // ---- inline rename (Obsidian-style) ----
+
+  function findRow(key) {
+    return [...app.querySelectorAll('.row')].find((r) => r.dataset.key === key);
+  }
+
+  function beginRename(key) {
+    const n = byKey.get(key);
+    if (!n || n.isDivider) return;
+    const row = findRow(key);
+    const labelEl = row && row.querySelector('.label');
+    if (!labelEl) return;
+
+    const m = n.isDir ? null : n.name.match(/\.(md|markdown)$/i);
+    const ext = m ? m[0] : '';
+    const stem = ext ? n.name.slice(0, n.name.length - ext.length) : n.name;
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'rename-input';
+    input.value = stem;
+    labelEl.replaceWith(input);
+    input.focus();
+    try {
+      input.setSelectionRange(0, stem.length);
+    } catch {}
+
+    let done = false;
+    const finish = (commit) => {
+      if (done) return;
+      done = true;
+      if (commit) {
+        const v = input.value.trim();
+        if (v && v !== stem) {
+          vscode.postMessage({ type: 'renameTo', key, newName: v + ext });
+          return; // host will refresh & re-render
+        }
+      }
+      render();
+    };
+    input.addEventListener('keydown', (ev) => {
+      ev.stopPropagation();
+      if (ev.key === 'Enter') {
+        ev.preventDefault();
+        finish(true);
+      } else if (ev.key === 'Escape') {
+        ev.preventDefault();
+        finish(false);
+      }
+    });
+    input.addEventListener('blur', () => finish(true));
+    input.addEventListener('click', (ev) => ev.stopPropagation());
+    input.addEventListener('dblclick', (ev) => ev.stopPropagation());
+  }
+
   // ---- drag & drop (box-shadow hints, no layout shift) ----
 
   function clearHints() {
@@ -349,7 +406,7 @@
     if (!selectedKey || !byKey.has(selectedKey)) return;
     const n = byKey.get(selectedKey);
     const meta = ev.metaKey || ev.ctrlKey;
-    if (ev.key === 'F2') act('rename');
+    if (ev.key === 'F2') beginRename(selectedKey);
     else if (ev.key === 'Enter') n.isDir ? toggle(n) : vscode.postMessage({ type: 'open', key: n.key });
     else if (ev.key === 'Delete' || (ev.key === 'Backspace' && meta)) act('delete');
     else if (meta && ev.key === 'c') act('copy');

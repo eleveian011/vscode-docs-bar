@@ -23,16 +23,21 @@ body {
   user-select: none;
   -webkit-user-select: none;
   cursor: default;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
-/* ---- toolbar (centered) ---- */
+/* ---- toolbar (centered, pinned to the bottom) ---- */
 
 #toolbar {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 2px;
-  padding: 6px 4px 4px;
+  padding: 5px 4px;
+  border-top: 1px solid var(--vscode-widget-border, rgba(128, 128, 128, 0.2));
 }
 
 .tbtn {
@@ -58,12 +63,20 @@ body {
   width: 16px;
   height: 16px;
   display: block;
+  opacity: 0.5;
+}
+
+.tbtn:hover svg {
+  opacity: 1;
 }
 
 /* ---- rows ---- */
 
 #app {
-  padding: 2px 0 12px;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 4px 0 8px;
 }
 
 .row {
@@ -152,6 +165,22 @@ body {
   flex: 1 1 auto;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: var(--vscode-descriptionForeground);
+  font-weight: 600;
+}
+
+.rename-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--vscode-input-foreground);
+  background: var(--vscode-input-background);
+  border: 1px solid var(--vscode-focusBorder);
+  border-radius: 4px;
+  padding: 1px 5px;
+  margin: -2px 0;
+  outline: none;
 }
 
 .git {

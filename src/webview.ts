@@ -113,7 +113,32 @@ export class DocsBarView implements vscode.WebviewViewProvider {
           m.movedParentKey ?? '',
         );
         return;
+      case 'renameTo':
+        await this.renameTo(m.key, m.newName);
+        return;
     }
+  }
+
+  private async renameTo(key: string, newName: string): Promise<void> {
+    const name = (newName ?? '').trim();
+    const uri = this.keyToUri(key);
+    if (!name || name === path.basename(uri.fsPath)) {
+      await this.refresh();
+      return;
+    }
+    const dest = vscode.Uri.joinPath(uri, '..', name);
+    if (await exists(dest)) {
+      void vscode.window.showWarningMessage('目标名称已存在');
+      await this.refresh();
+      return;
+    }
+    try {
+      await vscode.workspace.fs.rename(uri, dest, { overwrite: false });
+      await store.rekey(uri, dest);
+    } catch {
+      /* ignore */
+    }
+    await this.refresh();
   }
 
   /** Toolbar "更多" → native menu item. Inserts a divider at the top of the root. */
@@ -170,26 +195,9 @@ export class DocsBarView implements vscode.WebviewViewProvider {
         await vscode.window.showTextDocument(uri);
         return;
 
-      case 'rename': {
-        const oldName = path.basename(uri.fsPath);
-        const ext = path.extname(oldName);
-        const input = await vscode.window.showInputBox({
-          title: '重命名',
-          value: oldName,
-          valueSelection: [0, oldName.length - ext.length],
-        });
-        if (!input || input === oldName) {
-          return;
-        }
-        const dest = vscode.Uri.joinPath(uri, '..', input);
-        if (await exists(dest)) {
-          void vscode.window.showWarningMessage('目标名称已存在');
-          return;
-        }
-        await vscode.workspace.fs.rename(uri, dest, { overwrite: false });
-        await store.rekey(uri, dest);
-        break;
-      }
+      case 'rename':
+        this.post({ type: 'beginRename', key });
+        return;
 
       case 'copy':
         this.clipboard = [uri];
@@ -353,8 +361,8 @@ export class DocsBarView implements vscode.WebviewViewProvider {
 <link href="${cssUri}" rel="stylesheet">
 </head>
 <body>
-<div id="toolbar"></div>
 <div id="app"></div>
+<div id="toolbar"></div>
 <script nonce="${nonce}" src="${jsUri}"></script>
 </body>
 </html>`;
