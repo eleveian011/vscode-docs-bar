@@ -5,6 +5,12 @@
   const toolbar = document.getElementById('toolbar');
   const NS = 'http://www.w3.org/2000/svg';
 
+  // A single, reused insertion line (fixed-positioned → never shifts layout).
+  const dropline = document.createElement('div');
+  dropline.className = 'dropline';
+  dropline.hidden = true;
+  document.body.appendChild(dropline);
+
   let forest = [];
   let expanded = new Set();
   let selectedKey = null;
@@ -276,9 +282,8 @@
   // ---- drag & drop (box-shadow hints, no layout shift) ----
 
   function clearHints() {
-    for (const r of app.querySelectorAll('.drop-into, .drop-before, .drop-after')) {
-      r.classList.remove('drop-into', 'drop-before', 'drop-after');
-    }
+    for (const r of app.querySelectorAll('.drop-into')) r.classList.remove('drop-into');
+    dropline.hidden = true;
   }
 
   function onDragOver(ev, row, n) {
@@ -294,7 +299,16 @@
       zone = y < rect.height * 0.5 ? 'before' : 'after';
     }
     row.dataset.zone = zone;
-    row.classList.add('drop-' + zone);
+    if (zone === 'into') {
+      row.classList.add('drop-into');
+      return;
+    }
+    const depth = parseInt(row.style.getPropertyValue('--d') || '0', 10);
+    const indent = 8 + depth * 14;
+    dropline.style.top = (zone === 'before' ? rect.top : rect.bottom) - 1 + 'px';
+    dropline.style.left = rect.left + indent + 'px';
+    dropline.style.width = Math.max(0, rect.width - indent - 8) + 'px';
+    dropline.hidden = false;
   }
 
   function onDrop(ev, row, n) {

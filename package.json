@@ -2,7 +2,7 @@
   "name": "vscode-docs-bar",
   "displayName": "Docs Bar",
   "description": "A Notion-style Markdown navigator for VS Code: emoji page icons, display-name aliases, custom drag sort, hidden entries, git status — in a webview sidebar beside the built-in Explorer.",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "publisher": "eleveian011",
   "license": "MIT",
   "repository": {
@@ -29,80 +29,286 @@
   "contributes": {
     "viewsContainers": {
       "activitybar": [
-        { "id": "docsBarContainer", "title": "Docs Bar", "icon": "media/icon.svg" }
+        {
+          "id": "docsBarContainer",
+          "title": "Docs Bar",
+          "icon": "media/icon.svg"
+        }
       ]
     },
     "views": {
       "docsBarContainer": [
-        { "id": "docsBar", "name": "", "type": "webview" }
+        {
+          "id": "docsBar",
+          "name": "",
+          "type": "webview"
+        }
       ]
     },
     "commands": [
-      { "command": "docsBar.newFile", "title": "Docs Bar: 新建文件" },
-      { "command": "docsBar.newFolder", "title": "Docs Bar: 新建目录" },
-      { "command": "docsBar.expandAll", "title": "Docs Bar: 全部展开" },
-      { "command": "docsBar.collapseAll", "title": "Docs Bar: 全部收起" },
-      { "command": "docsBar.refresh", "title": "Docs Bar: 刷新" },
-      { "command": "docsBar.unhideAll", "title": "Docs Bar: 取消所有隐藏" },
-      { "command": "docsBar.ctx.open", "title": "打开" },
-      { "command": "docsBar.ctx.newFile", "title": "新建文件" },
-      { "command": "docsBar.ctx.newFolder", "title": "新建目录" },
-      { "command": "docsBar.ctx.setIcon", "title": "设置图标…" },
-      { "command": "docsBar.ctx.setAlias", "title": "设置显示名…" },
-      { "command": "docsBar.ctx.rename", "title": "重命名" },
-      { "command": "docsBar.ctx.duplicate", "title": "创建副本" },
-      { "command": "docsBar.ctx.copy", "title": "复制" },
-      { "command": "docsBar.ctx.paste", "title": "粘贴" },
-      { "command": "docsBar.ctx.copyPath", "title": "复制路径" },
-      { "command": "docsBar.ctx.copyRelativePath", "title": "复制相对路径" },
-      { "command": "docsBar.ctx.hide", "title": "在 Docs Bar 中隐藏" },
-      { "command": "docsBar.ctx.reveal", "title": "在 Finder 中显示" },
-      { "command": "docsBar.ctx.delete", "title": "删除" },
-      { "command": "docsBar.ctx.deleteDivider", "title": "删除分割线" },
-      { "command": "docsBar.ctx.newDivider", "title": "新建分割线" },
-      { "command": "docsBar.ctx.refresh", "title": "刷新" },
-      { "command": "docsBar.ctx.unhideAll", "title": "取消所有隐藏" }
+      {
+        "command": "docsBar.newFile",
+        "title": "Docs Bar: 新建文件"
+      },
+      {
+        "command": "docsBar.newFolder",
+        "title": "Docs Bar: 新建目录"
+      },
+      {
+        "command": "docsBar.expandAll",
+        "title": "Docs Bar: 全部展开"
+      },
+      {
+        "command": "docsBar.collapseAll",
+        "title": "Docs Bar: 全部收起"
+      },
+      {
+        "command": "docsBar.refresh",
+        "title": "Docs Bar: 刷新"
+      },
+      {
+        "command": "docsBar.unhideAll",
+        "title": "Docs Bar: 取消所有隐藏"
+      },
+      {
+        "command": "docsBar.ctx.open",
+        "title": "打开"
+      },
+      {
+        "command": "docsBar.ctx.newFile",
+        "title": "新建文件"
+      },
+      {
+        "command": "docsBar.ctx.newFolder",
+        "title": "新建目录"
+      },
+      {
+        "command": "docsBar.ctx.setIcon",
+        "title": "设置图标…"
+      },
+      {
+        "command": "docsBar.ctx.setAlias",
+        "title": "设置显示名…"
+      },
+      {
+        "command": "docsBar.ctx.rename",
+        "title": "重命名"
+      },
+      {
+        "command": "docsBar.ctx.duplicate",
+        "title": "创建副本"
+      },
+      {
+        "command": "docsBar.ctx.copy",
+        "title": "复制"
+      },
+      {
+        "command": "docsBar.ctx.paste",
+        "title": "粘贴"
+      },
+      {
+        "command": "docsBar.ctx.copyPath",
+        "title": "复制路径"
+      },
+      {
+        "command": "docsBar.ctx.copyRelativePath",
+        "title": "复制相对路径"
+      },
+      {
+        "command": "docsBar.ctx.hide",
+        "title": "在 Docs Bar 中隐藏"
+      },
+      {
+        "command": "docsBar.ctx.reveal",
+        "title": "在 Finder 中显示"
+      },
+      {
+        "command": "docsBar.ctx.delete",
+        "title": "删除"
+      },
+      {
+        "command": "docsBar.ctx.deleteDivider",
+        "title": "删除分割线"
+      },
+      {
+        "command": "docsBar.ctx.newDivider",
+        "title": "新建分割线"
+      },
+      {
+        "command": "docsBar.ctx.refresh",
+        "title": "刷新"
+      },
+      {
+        "command": "docsBar.ctx.unhideAll",
+        "title": "取消所有隐藏"
+      }
     ],
     "menus": {
       "webview/context": [
-        { "command": "docsBar.ctx.open", "when": "webviewSection == 'docsBarItem' && !docIsDir", "group": "1_open@1" },
-        { "command": "docsBar.ctx.newFile", "when": "webviewSection == 'docsBarItem' && docIsDir", "group": "1_open@1" },
-        { "command": "docsBar.ctx.newFolder", "when": "webviewSection == 'docsBarItem' && docIsDir", "group": "1_open@2" },
-        { "command": "docsBar.ctx.setIcon", "when": "webviewSection == 'docsBarItem'", "group": "2_icon@1" },
-        { "command": "docsBar.ctx.setAlias", "when": "webviewSection == 'docsBarItem'", "group": "2_icon@2" },
-        { "command": "docsBar.ctx.rename", "when": "webviewSection == 'docsBarItem'", "group": "3_mod@1" },
-        { "command": "docsBar.ctx.duplicate", "when": "webviewSection == 'docsBarItem'", "group": "3_mod@2" },
-        { "command": "docsBar.ctx.copy", "when": "webviewSection == 'docsBarItem'", "group": "3_mod@3" },
-        { "command": "docsBar.ctx.paste", "when": "webviewSection == 'docsBarItem' && docIsDir", "group": "3_mod@4" },
-        { "command": "docsBar.ctx.copyPath", "when": "webviewSection == 'docsBarItem'", "group": "4_path@1" },
-        { "command": "docsBar.ctx.copyRelativePath", "when": "webviewSection == 'docsBarItem'", "group": "4_path@2" },
-        { "command": "docsBar.ctx.hide", "when": "webviewSection == 'docsBarItem'", "group": "5_more@1" },
-        { "command": "docsBar.ctx.reveal", "when": "webviewSection == 'docsBarItem'", "group": "5_more@2" },
-        { "command": "docsBar.ctx.delete", "when": "webviewSection == 'docsBarItem'", "group": "9_danger@1" },
-        { "command": "docsBar.ctx.deleteDivider", "when": "webviewSection == 'docsBarDivider'", "group": "9_danger@1" },
-        { "command": "docsBar.ctx.newDivider", "when": "webviewSection == 'docsBarMore'", "group": "1_more@1" },
-        { "command": "docsBar.ctx.refresh", "when": "webviewSection == 'docsBarMore'", "group": "2_more@1" },
-        { "command": "docsBar.ctx.unhideAll", "when": "webviewSection == 'docsBarMore'", "group": "2_more@2" }
+        {
+          "command": "docsBar.ctx.open",
+          "when": "webviewSection == 'docsBarItem' && !docIsDir",
+          "group": "1_open@1"
+        },
+        {
+          "command": "docsBar.ctx.newFile",
+          "when": "webviewSection == 'docsBarItem' && docIsDir",
+          "group": "1_open@1"
+        },
+        {
+          "command": "docsBar.ctx.newFolder",
+          "when": "webviewSection == 'docsBarItem' && docIsDir",
+          "group": "1_open@2"
+        },
+        {
+          "command": "docsBar.ctx.setIcon",
+          "when": "webviewSection == 'docsBarItem'",
+          "group": "2_icon@1"
+        },
+        {
+          "command": "docsBar.ctx.setAlias",
+          "when": "webviewSection == 'docsBarItem'",
+          "group": "2_icon@2"
+        },
+        {
+          "command": "docsBar.ctx.rename",
+          "when": "webviewSection == 'docsBarItem'",
+          "group": "3_mod@1"
+        },
+        {
+          "command": "docsBar.ctx.duplicate",
+          "when": "webviewSection == 'docsBarItem'",
+          "group": "3_mod@2"
+        },
+        {
+          "command": "docsBar.ctx.copy",
+          "when": "webviewSection == 'docsBarItem'",
+          "group": "3_mod@3"
+        },
+        {
+          "command": "docsBar.ctx.paste",
+          "when": "webviewSection == 'docsBarItem' && docIsDir",
+          "group": "3_mod@4"
+        },
+        {
+          "command": "docsBar.ctx.copyPath",
+          "when": "webviewSection == 'docsBarItem'",
+          "group": "4_path@1"
+        },
+        {
+          "command": "docsBar.ctx.copyRelativePath",
+          "when": "webviewSection == 'docsBarItem'",
+          "group": "4_path@2"
+        },
+        {
+          "command": "docsBar.ctx.hide",
+          "when": "webviewSection == 'docsBarItem'",
+          "group": "5_more@1"
+        },
+        {
+          "command": "docsBar.ctx.reveal",
+          "when": "webviewSection == 'docsBarItem'",
+          "group": "5_more@2"
+        },
+        {
+          "command": "docsBar.ctx.delete",
+          "when": "webviewSection == 'docsBarItem'",
+          "group": "9_danger@1"
+        },
+        {
+          "command": "docsBar.ctx.deleteDivider",
+          "when": "webviewSection == 'docsBarDivider'",
+          "group": "9_danger@1"
+        },
+        {
+          "command": "docsBar.ctx.newDivider",
+          "when": "webviewSection == 'docsBarMore'",
+          "group": "1_more@1"
+        },
+        {
+          "command": "docsBar.ctx.refresh",
+          "when": "webviewSection == 'docsBarMore'",
+          "group": "2_more@1"
+        },
+        {
+          "command": "docsBar.ctx.unhideAll",
+          "when": "webviewSection == 'docsBarMore'",
+          "group": "2_more@2"
+        }
       ],
       "commandPalette": [
-        { "command": "docsBar.ctx.open", "when": "false" },
-        { "command": "docsBar.ctx.newFile", "when": "false" },
-        { "command": "docsBar.ctx.newFolder", "when": "false" },
-        { "command": "docsBar.ctx.setIcon", "when": "false" },
-        { "command": "docsBar.ctx.setAlias", "when": "false" },
-        { "command": "docsBar.ctx.rename", "when": "false" },
-        { "command": "docsBar.ctx.duplicate", "when": "false" },
-        { "command": "docsBar.ctx.copy", "when": "false" },
-        { "command": "docsBar.ctx.paste", "when": "false" },
-        { "command": "docsBar.ctx.copyPath", "when": "false" },
-        { "command": "docsBar.ctx.copyRelativePath", "when": "false" },
-        { "command": "docsBar.ctx.hide", "when": "false" },
-        { "command": "docsBar.ctx.reveal", "when": "false" },
-        { "command": "docsBar.ctx.delete", "when": "false" },
-        { "command": "docsBar.ctx.deleteDivider", "when": "false" },
-        { "command": "docsBar.ctx.newDivider", "when": "false" },
-        { "command": "docsBar.ctx.refresh", "when": "false" },
-        { "command": "docsBar.ctx.unhideAll", "when": "false" }
+        {
+          "command": "docsBar.ctx.open",
+          "when": "false"
+        },
+        {
+          "command": "docsBar.ctx.newFile",
+          "when": "false"
+        },
+        {
+          "command": "docsBar.ctx.newFolder",
+          "when": "false"
+        },
+        {
+          "command": "docsBar.ctx.setIcon",
+          "when": "false"
+        },
+        {
+          "command": "docsBar.ctx.setAlias",
+          "when": "false"
+        },
+        {
+          "command": "docsBar.ctx.rename",
+          "when": "false"
+        },
+        {
+          "command": "docsBar.ctx.duplicate",
+          "when": "false"
+        },
+        {
+          "command": "docsBar.ctx.copy",
+          "when": "false"
+        },
+        {
+          "command": "docsBar.ctx.paste",
+          "when": "false"
+        },
+        {
+          "command": "docsBar.ctx.copyPath",
+          "when": "false"
+        },
+        {
+          "command": "docsBar.ctx.copyRelativePath",
+          "when": "false"
+        },
+        {
+          "command": "docsBar.ctx.hide",
+          "when": "false"
+        },
+        {
+          "command": "docsBar.ctx.reveal",
+          "when": "false"
+        },
+        {
+          "command": "docsBar.ctx.delete",
+          "when": "false"
+        },
+        {
+          "command": "docsBar.ctx.deleteDivider",
+          "when": "false"
+        },
+        {
+          "command": "docsBar.ctx.newDivider",
+          "when": "false"
+        },
+        {
+          "command": "docsBar.ctx.refresh",
+          "when": "false"
+        },
+        {
+          "command": "docsBar.ctx.unhideAll",
+          "when": "false"
+        }
       ]
     },
     "configuration": {
@@ -126,31 +332,48 @@
         "docsBar.icons": {
           "type": "object",
           "default": {},
-          "additionalProperties": { "type": "string" },
+          "additionalProperties": {
+            "type": "string"
+          },
           "description": "路径 → emoji 图标映射。一般通过右键菜单维护。"
         },
         "docsBar.aliases": {
           "type": "object",
           "default": {},
-          "additionalProperties": { "type": "string" },
+          "additionalProperties": {
+            "type": "string"
+          },
           "description": "路径 → 显示名映射（不改真实文件名）。一般通过右键菜单维护。"
         },
         "docsBar.order": {
           "type": "object",
           "default": {},
-          "additionalProperties": { "type": "array", "items": { "type": "string" } },
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "description": "每个父目录下子项的手动排序。一般通过拖拽维护。"
         },
         "docsBar.hidden": {
           "type": "array",
           "default": [],
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "description": "在 Docs Bar 中隐藏的路径列表（相对工作区根）。"
         },
         "docsBar.alwaysHide": {
           "type": "array",
-          "default": [ ".git", ".DS_Store", "node_modules" ],
-          "items": { "type": "string" },
+          "default": [
+            ".git",
+            ".DS_Store",
+            "node_modules"
+          ],
+          "items": {
+            "type": "string"
+          },
           "description": "始终隐藏的文件/目录名（按 basename 匹配）。"
         }
       }
