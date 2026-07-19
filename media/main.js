@@ -2,15 +2,44 @@
 (function () {
   const vscode = acquireVsCodeApi();
   const app = document.getElementById('app');
-  const menuEl = document.getElementById('menu');
+  const NS = 'http://www.w3.org/2000/svg';
 
   let forest = [];
   let expanded = new Set();
   let selectedKey = null;
 
-  // lookup maps rebuilt each render
   let byKey = new Map();
-  let siblings = new Map(); // parentKey -> [node,...] in display order
+  let siblings = new Map(); // parentKey -> [node,...] display order
+
+  const ICON = {
+    chevron: ['m9 18 6-6-6-6'],
+    folder: [
+      'M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z',
+    ],
+    file: [
+      'M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z',
+      'M14 2v5a1 1 0 0 0 1 1h5',
+      'M10 9H8',
+      'M16 13H8',
+      'M16 17H8',
+    ],
+  };
+
+  function svgEl(paths) {
+    const svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('fill', 'none');
+    svg.setAttribute('stroke', 'currentColor');
+    svg.setAttribute('stroke-width', '2');
+    svg.setAttribute('stroke-linecap', 'round');
+    svg.setAttribute('stroke-linejoin', 'round');
+    for (const d of paths) {
+      const p = document.createElementNS(NS, 'path');
+      p.setAttribute('d', d);
+      svg.appendChild(p);
+    }
+    return svg;
+  }
 
   window.addEventListener('message', (e) => {
     const m = e.data;
@@ -49,7 +78,6 @@
 
   function render() {
     indexTree();
-    menuEl.hidden = true;
     app.innerHTML = '';
     if (!forest.length) {
       const d = document.createElement('div');
@@ -76,15 +104,29 @@
     row.style.setProperty('--d', depth);
     row.dataset.key = n.key;
     row.draggable = true;
+    row.setAttribute(
+      'data-vscode-context',
+      JSON.stringify({
+        webviewSection: 'docsBarItem',
+        docKey: n.key,
+        docIsDir: n.isDir,
+        preventDefaultContextMenuItems: true,
+      }),
+    );
 
     const twist = document.createElement('span');
-    twist.className = 'twist' + (n.isDir ? '' : ' leaf');
-    twist.textContent = '▶';
+    twist.className = 'twist';
+    if (n.isDir) twist.appendChild(svgEl(ICON.chevron));
     row.appendChild(twist);
 
     const icon = document.createElement('span');
-    icon.className = 'icon' + (n.emoji ? '' : ' default');
-    icon.textContent = n.emoji || (n.isDir ? '📁' : '📄');
+    icon.className = 'icon';
+    if (n.emoji) {
+      icon.classList.add('emoji');
+      icon.textContent = n.emoji;
+    } else {
+      icon.appendChild(svgEl(n.isDir ? ICON.folder : ICON.file));
+    }
     row.appendChild(icon);
 
     const label = document.createElement('span');
@@ -109,20 +151,17 @@
       else vscode.postMessage({ type: 'open', key: n.key });
       markSelection();
     });
-    row.addEventListener('contextmenu', (ev) => {
-      ev.preventDefault();
+    // Let VS Code show its native menu (via data-vscode-context); just track selection.
+    row.addEventListener('contextmenu', () => {
       selectedKey = n.key;
       markSelection();
-      showMenu(n, ev.clientX, ev.clientY);
     });
 
-    // drag & drop
     row.addEventListener('dragstart', (ev) => {
       ev.dataTransfer.setData('text/plain', n.key);
       ev.dataTransfer.effectAllowed = 'move';
     });
     row.addEventListener('dragover', (ev) => onDragOver(ev, row, n));
-    row.addEventListener('dragleave', () => clearDropHints(row));
     row.addEventListener('drop', (ev) => onDrop(ev, row, n));
 
     return row;
@@ -142,54 +181,35 @@
     render();
   }
 
-  // ---- drag & drop ----
+  // ---- drag & drop (box-shadow hints, no layout shift) ----
 
-  let dropLine = null;
-
-  function clearDropHints(row) {
-    if (row) row.classList.remove('drop-into');
-    if (dropLine && dropLine.parentNode) dropLine.parentNode.removeChild(dropLine);
-    dropLine = null;
-  }
-
-  function clearAllDropHints() {
-    for (const r of app.querySelectorAll('.drop-into')) r.classList.remove('drop-into');
-    if (dropLine && dropLine.parentNode) dropLine.parentNode.removeChild(dropLine);
-    dropLine = null;
+  function clearHints() {
+    for (const r of app.querySelectorAll('.drop-into, .drop-before, .drop-after')) {
+      r.classList.remove('drop-into', 'drop-before', 'drop-after');
+    }
   }
 
   function onDragOver(ev, row, n) {
     ev.preventDefault();
     ev.dataTransfer.dropEffect = 'move';
-    clearAllDropHints();
+    clearHints();
     const rect = row.getBoundingClientRect();
     const y = ev.clientY - rect.top;
-    const zone = n.isDir
-      ? y < rect.height * 0.25
-        ? 'before'
-        : y > rect.height * 0.75
-        ? 'after'
-        : 'into'
-      : y < rect.height * 0.5
-      ? 'before'
-      : 'after';
-    row.dataset.zone = zone;
-    if (zone === 'into') {
-      row.classList.add('drop-into');
+    let zone;
+    if (n.isDir) {
+      zone = y < rect.height * 0.25 ? 'before' : y > rect.height * 0.75 ? 'after' : 'into';
     } else {
-      dropLine = document.createElement('div');
-      dropLine.className = 'drop-line';
-      dropLine.style.setProperty('--d', row.style.getPropertyValue('--d') || 0);
-      if (zone === 'before') row.parentNode.insertBefore(dropLine, row);
-      else row.parentNode.insertBefore(dropLine, row.nextSibling);
+      zone = y < rect.height * 0.5 ? 'before' : 'after';
     }
+    row.dataset.zone = zone;
+    row.classList.add('drop-' + zone);
   }
 
   function onDrop(ev, row, n) {
     ev.preventDefault();
     const movedKey = ev.dataTransfer.getData('text/plain');
     const zone = row.dataset.zone || 'before';
-    clearAllDropHints();
+    clearHints();
     if (!movedKey || movedKey === n.key) return;
 
     let parentKey;
@@ -210,102 +230,14 @@
     vscode.postMessage({ type: 'reorder', moved: [movedKey], parentKey, beforeKey });
   }
 
-  // ---- context menu ----
-
-  const SEP = { sep: true };
-
-  function menuItems(n) {
-    if (n.isDir) {
-      return [
-        { label: '新建文件', action: 'newFile' },
-        { label: '新建目录', action: 'newFolder' },
-        SEP,
-        { label: '设置图标', action: 'setIcon' },
-        { label: '设置显示名', action: 'setAlias' },
-        SEP,
-        { label: '重命名', action: 'rename', kbd: 'F2' },
-        { label: '创建副本', action: 'duplicate' },
-        { label: '复制', action: 'copy' },
-        { label: '粘贴', action: 'paste' },
-        SEP,
-        { label: '复制路径', action: 'copyPath' },
-        { label: '复制相对路径', action: 'copyRelativePath' },
-        SEP,
-        { label: '在 Docs Bar 中隐藏', action: 'hide' },
-        { label: '在 Finder 中显示', action: 'reveal' },
-        SEP,
-        { label: '删除', action: 'delete', danger: true },
-      ];
-    }
-    return [
-      { label: '打开', action: 'open' },
-      SEP,
-      { label: '设置图标', action: 'setIcon' },
-      { label: '设置显示名', action: 'setAlias' },
-      SEP,
-      { label: '重命名', action: 'rename', kbd: 'F2' },
-      { label: '创建副本', action: 'duplicate' },
-      { label: '复制', action: 'copy' },
-      SEP,
-      { label: '复制路径', action: 'copyPath' },
-      { label: '复制相对路径', action: 'copyRelativePath' },
-      SEP,
-      { label: '在 Docs Bar 中隐藏', action: 'hide' },
-      { label: '在 Finder 中显示', action: 'reveal' },
-      SEP,
-      { label: '删除', action: 'delete', danger: true },
-    ];
-  }
-
-  function showMenu(n, x, y) {
-    menuEl.innerHTML = '';
-    for (const item of menuItems(n)) {
-      if (item.sep) {
-        const s = document.createElement('div');
-        s.className = 'sep';
-        menuEl.appendChild(s);
-        continue;
-      }
-      const mi = document.createElement('div');
-      mi.className = 'mi' + (item.danger ? ' danger' : '');
-      const t = document.createElement('span');
-      t.textContent = item.label;
-      mi.appendChild(t);
-      if (item.kbd) {
-        const k = document.createElement('span');
-        k.className = 'kbd';
-        k.textContent = item.kbd;
-        mi.appendChild(k);
-      }
-      mi.addEventListener('click', () => {
-        menuEl.hidden = true;
-        vscode.postMessage({ type: 'action', action: item.action, key: n.key });
-      });
-      menuEl.appendChild(mi);
-    }
-    menuEl.hidden = false;
-    // position, clamped to viewport
-    const mw = menuEl.offsetWidth;
-    const mh = menuEl.offsetHeight;
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    menuEl.style.left = Math.min(x, vw - mw - 6) + 'px';
-    menuEl.style.top = Math.min(y, vh - mh - 6) + 'px';
-  }
-
-  window.addEventListener('click', (ev) => {
-    if (!menuEl.hidden && !menuEl.contains(ev.target)) menuEl.hidden = true;
+  app.addEventListener('dragend', clearHints);
+  app.addEventListener('dragleave', (ev) => {
+    if (ev.target === app) clearHints();
   });
-  window.addEventListener('blur', () => (menuEl.hidden = true));
-  window.addEventListener('scroll', () => (menuEl.hidden = true), true);
 
-  // ---- keyboard ----
+  // ---- keyboard (view focused) ----
 
   window.addEventListener('keydown', (ev) => {
-    if (!menuEl.hidden && ev.key === 'Escape') {
-      menuEl.hidden = true;
-      return;
-    }
     if (!selectedKey || !byKey.has(selectedKey)) return;
     const n = byKey.get(selectedKey);
     const meta = ev.metaKey || ev.ctrlKey;

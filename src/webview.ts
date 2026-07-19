@@ -79,6 +79,11 @@ export class DocsBarView implements vscode.WebviewViewProvider {
     return this.newEntry(store.getRoots()[0], true);
   }
 
+  /** Invoked by native webview/context menu commands. */
+  runAction(name: string, key: string): Promise<void> {
+    return this.action(name, key);
+  }
+
   // ---- messaging ----
 
   private keyToUri(key: string): vscode.Uri {
@@ -310,7 +315,6 @@ export class DocsBarView implements vscode.WebviewViewProvider {
 </head>
 <body>
 <div id="app"></div>
-<div id="menu" class="context-menu" hidden></div>
 <script nonce="${nonce}" src="${jsUri}"></script>
 </body>
 </html>`;

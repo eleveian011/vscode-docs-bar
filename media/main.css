@@ -52,45 +52,63 @@ body {
   background: var(--vscode-list-inactiveSelectionBackground);
 }
 
+/* drop hints use box-shadow only → never change layout height */
 .row.drop-into {
   background: var(--vscode-list-dropBackground, rgba(80, 130, 220, 0.25));
   box-shadow: inset 0 0 0 1px var(--vscode-focusBorder);
 }
+.row.drop-before {
+  box-shadow: inset 0 2px 0 var(--vscode-focusBorder);
+}
+.row.drop-after {
+  box-shadow: inset 0 -2px 0 var(--vscode-focusBorder);
+}
 
 .twist {
   flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 14px;
-  text-align: center;
-  font-size: 9px;
   opacity: 0;
   color: var(--vscode-icon-foreground, currentColor);
   transition: transform 0.12s ease, opacity 0.1s ease;
 }
 
+.twist svg {
+  width: 12px;
+  height: 12px;
+  display: block;
+}
+
 .row:hover .twist,
 .row.expanded .twist {
-  opacity: 0.5;
+  opacity: 0.6;
 }
 
 .row.expanded .twist {
   transform: rotate(90deg);
 }
 
-.twist.leaf {
-  visibility: hidden;
-}
-
 .icon {
   flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 20px;
-  text-align: center;
+}
+
+.icon svg {
+  width: 15px;
+  height: 15px;
+  display: block;
+  opacity: 0.85;
+}
+
+.icon.emoji {
   font-size: 15px;
   line-height: 1;
   font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
-}
-
-.icon.default {
-  opacity: 0.5;
 }
 
 .label {
@@ -121,16 +139,6 @@ body {
   color: var(--vscode-gitDecoration-renamedResourceForeground, #73c991);
 }
 
-/* ---- drop line ---- */
-
-.drop-line {
-  height: 0;
-  margin: 0 6px 0 calc(6px + var(--d, 0) * var(--indent));
-  border-top: 2px solid var(--vscode-focusBorder);
-  border-radius: 1px;
-  pointer-events: none;
-}
-
 /* ---- empty ---- */
 
 .empty {
@@ -138,53 +146,5 @@ body {
   color: var(--vscode-descriptionForeground);
   font-size: 13px;
   line-height: 1.6;
-}
-
-/* ---- context menu ---- */
-
-.context-menu {
-  position: fixed;
-  z-index: 1000;
-  min-width: 190px;
-  padding: 4px;
-  border-radius: 8px;
-  background: var(--vscode-menu-background, var(--vscode-editorWidget-background));
-  color: var(--vscode-menu-foreground, var(--vscode-foreground));
-  border: 1px solid var(--vscode-menu-border, var(--vscode-editorWidget-border, rgba(128, 128, 128, 0.25)));
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.36);
-  font-size: 13px;
-}
-
-.context-menu[hidden] {
-  display: none;
-}
-
-.mi {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  padding: 5px 10px;
-  border-radius: 4px;
-  white-space: nowrap;
-}
-
-.mi:hover {
-  background: var(--vscode-menu-selectionBackground);
-  color: var(--vscode-menu-selectionForeground);
-}
-
-.mi .kbd {
-  opacity: 0.55;
-  font-size: 11px;
-}
-
-.mi.danger:hover {
-  background: var(--vscode-menu-selectionBackground, #c74e39);
-}
-
-.sep {
-  height: 1px;
-  margin: 4px 8px;
-  background: var(--vscode-menu-separatorBackground, rgba(128, 128, 128, 0.3));
+  white-space: pre-line;
 }

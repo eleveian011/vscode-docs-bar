@@ -41,6 +41,23 @@ export function activate(context: vscode.ExtensionContext): void {
   cmd('docsBar.expandAll', () => view.expandAll());
   cmd('docsBar.collapseAll', () => view.collapseAll());
   cmd('docsBar.refresh', () => void view.refresh());
+
+  // Native context-menu items (contributed to webview/context). VS Code passes
+  // the row's data-vscode-context object as the first argument.
+  const CTX_ACTIONS = [
+    'open', 'newFile', 'newFolder', 'setIcon', 'setAlias', 'rename',
+    'duplicate', 'copy', 'paste', 'copyPath', 'copyRelativePath',
+    'hide', 'reveal', 'delete',
+  ];
+  for (const action of CTX_ACTIONS) {
+    context.subscriptions.push(
+      vscode.commands.registerCommand(`docsBar.ctx.${action}`, (ctx?: { docKey?: string }) => {
+        if (ctx?.docKey !== undefined) {
+          void view.runAction(action, ctx.docKey);
+        }
+      }),
+    );
+  }
 }
 
 export function deactivate(): void {
