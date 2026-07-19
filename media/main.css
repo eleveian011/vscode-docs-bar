@@ -167,6 +167,7 @@ body {
   text-overflow: ellipsis;
   color: var(--vscode-descriptionForeground);
   font-weight: 600;
+  opacity: 0.75;
 }
 
 .rename-input {
@@ -183,22 +184,30 @@ body {
   outline: none;
 }
 
-.git {
+.git,
+.git-dot {
   flex: 0 0 auto;
-  margin-left: 6px;
+  margin-left: 4px;
+  width: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.git {
   font-size: 11px;
   font-weight: 400;
   color: var(--vscode-descriptionForeground);
   opacity: 0.6;
 }
 
-.git-dot {
-  flex: 0 0 auto;
-  margin-left: 6px;
+.git-dot::before {
+  content: "";
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--vscode-gitDecoration-modifiedResourceForeground, #e2c08d);
+  background: var(--vscode-descriptionForeground);
+  opacity: 0.6;
 }
 
 /* ---- empty ---- */

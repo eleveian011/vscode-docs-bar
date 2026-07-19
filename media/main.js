@@ -87,33 +87,13 @@
       ['newFolder', '新建目录', () => vscode.postMessage({ type: 'action', action: 'newFolder', key: '' })],
       ['expand', '全部展开', expandAllLocal],
       ['collapse', '全部收起', collapseAllLocal],
-      ['more', '更多', null],
     ];
     for (const [name, title, fn] of buttons) {
       const b = document.createElement('button');
       b.className = 'tbtn';
       b.title = title;
       b.appendChild(icon(name));
-      if (name === 'more') {
-        // Open VS Code's native menu: mark a context section and synthesise a
-        // contextmenu event under the button on left-click.
-        b.setAttribute(
-          'data-vscode-context',
-          JSON.stringify({ webviewSection: 'docsBarMore', preventDefaultContextMenuItems: true }),
-        );
-        b.addEventListener('click', () => {
-          const r = b.getBoundingClientRect();
-          b.dispatchEvent(
-            new MouseEvent('contextmenu', {
-              bubbles: true,
-              clientX: Math.round(r.left),
-              clientY: Math.round(r.bottom),
-            }),
-          );
-        });
-      } else {
-        b.addEventListener('click', fn);
-      }
+      b.addEventListener('click', fn);
       toolbar.appendChild(b);
     }
   }

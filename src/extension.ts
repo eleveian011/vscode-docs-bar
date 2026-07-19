@@ -94,8 +94,8 @@ export function activate(context: vscode.ExtensionContext): void {
       : vscode.ConfigurationTarget.Global;
     await config.update('markdownOnly', !config.get('markdownOnly', true), tgt);
   };
-  cmd('docsBar.ctx.mdOnlyOn', () => void toggleMdOnly());
-  cmd('docsBar.ctx.mdOnlyOff', () => void toggleMdOnly());
+  cmd('docsBar.ctx.showAll', () => void toggleMdOnly());
+  cmd('docsBar.ctx.mdOnly', () => void toggleMdOnly());
 }
 
 export function deactivate(): void {
