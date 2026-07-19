@@ -25,16 +25,51 @@ body {
   cursor: default;
 }
 
-#app {
-  padding: 4px 0 12px;
+/* ---- toolbar (centered) ---- */
+
+#toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 4px 4px;
+}
+
+.tbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--vscode-descriptionForeground);
+  cursor: pointer;
+}
+
+.tbtn:hover {
+  background: var(--vscode-toolbar-hoverBackground, var(--vscode-list-hoverBackground));
+  color: var(--vscode-foreground);
+}
+
+.tbtn svg {
+  width: 16px;
+  height: 16px;
+  display: block;
 }
 
 /* ---- rows ---- */
 
+#app {
+  padding: 2px 0 12px;
+}
+
 .row {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   min-height: var(--row-h);
   margin: 1px 6px;
   padding: 2px 6px 2px calc(6px + var(--d, 0) * var(--indent));
@@ -64,50 +99,25 @@ body {
   box-shadow: inset 0 -2px 0 var(--vscode-focusBorder);
 }
 
-.twist {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 14px;
-  opacity: 0;
-  color: var(--vscode-icon-foreground, currentColor);
-  transition: transform 0.12s ease, opacity 0.1s ease;
-}
-
-.twist svg {
-  width: 12px;
-  height: 12px;
-  display: block;
-}
-
-.row:hover .twist,
-.row.expanded .twist {
-  opacity: 0.6;
-}
-
-.row.expanded .twist {
-  transform: rotate(90deg);
-}
-
 .icon {
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 20px;
+  color: var(--vscode-descriptionForeground);
 }
 
 .icon svg {
   width: 15px;
   height: 15px;
   display: block;
-  opacity: 0.85;
 }
 
 .icon.emoji {
   font-size: 15px;
   line-height: 1;
+  opacity: 0.92;
   font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
 }
 

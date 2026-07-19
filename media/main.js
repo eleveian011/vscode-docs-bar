@@ -2,6 +2,7 @@
 (function () {
   const vscode = acquireVsCodeApi();
   const app = document.getElementById('app');
+  const toolbar = document.getElementById('toolbar');
   const NS = 'http://www.w3.org/2000/svg';
 
   let forest = [];
@@ -11,8 +12,7 @@
   let byKey = new Map();
   let siblings = new Map(); // parentKey -> [node,...] display order
 
-  const ICON = {
-    chevron: ['m9 18 6-6-6-6'],
+  const PATHS = {
     folder: [
       'M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z',
     ],
@@ -23,9 +23,26 @@
       'M16 13H8',
       'M16 17H8',
     ],
+    newFile: [
+      'M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z',
+      'M14 2v5a1 1 0 0 0 1 1h5',
+      'M9 15h6',
+      'M12 18v-6',
+    ],
+    newFolder: [
+      'M12 10v6',
+      'M9 13h6',
+      'M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z',
+    ],
+    expand: [
+      'M12 22v-6', 'M12 8V2', 'M4 12H2', 'M10 12H8', 'M16 12h-2', 'M22 12h-2', 'm15 19-3 3-3-3', 'm15 5-3-3-3 3',
+    ],
+    collapse: [
+      'M12 22v-6', 'M12 8V2', 'M4 12H2', 'M10 12H8', 'M16 12h-2', 'M22 12h-2', 'm15 19-3-3-3 3', 'm15 5-3 3-3-3',
+    ],
   };
 
-  function svgEl(paths) {
+  function svgEl(spec) {
     const svg = document.createElementNS(NS, 'svg');
     svg.setAttribute('viewBox', '0 0 24 24');
     svg.setAttribute('fill', 'none');
@@ -33,12 +50,58 @@
     svg.setAttribute('stroke-width', '2');
     svg.setAttribute('stroke-linecap', 'round');
     svg.setAttribute('stroke-linejoin', 'round');
-    for (const d of paths) {
+    for (const d of spec.paths || []) {
       const p = document.createElementNS(NS, 'path');
       p.setAttribute('d', d);
       svg.appendChild(p);
     }
+    for (const [cx, cy] of spec.dots || []) {
+      const c = document.createElementNS(NS, 'circle');
+      c.setAttribute('cx', cx);
+      c.setAttribute('cy', cy);
+      c.setAttribute('r', '1.5');
+      c.setAttribute('fill', 'currentColor');
+      c.setAttribute('stroke', 'none');
+      svg.appendChild(c);
+    }
     return svg;
+  }
+
+  function icon(name) {
+    if (name === 'more') return svgEl({ dots: [[5, 12], [12, 12], [19, 12]] });
+    return svgEl({ paths: PATHS[name] });
+  }
+
+  // ---- toolbar (centered) ----
+
+  function renderToolbar() {
+    toolbar.innerHTML = '';
+    const buttons = [
+      ['newFile', '新建文件', () => vscode.postMessage({ type: 'action', action: 'newFile', key: '' })],
+      ['newFolder', '新建目录', () => vscode.postMessage({ type: 'action', action: 'newFolder', key: '' })],
+      ['expand', '全部展开', expandAllLocal],
+      ['collapse', '全部收起', collapseAllLocal],
+      ['more', '更多', () => vscode.postMessage({ type: 'more' })],
+    ];
+    for (const [name, title, fn] of buttons) {
+      const b = document.createElement('button');
+      b.className = 'tbtn';
+      b.title = title;
+      b.appendChild(icon(name));
+      b.addEventListener('click', fn);
+      toolbar.appendChild(b);
+    }
+  }
+
+  function expandAllLocal() {
+    byKey.forEach((n) => n.isDir && expanded.add(n.key));
+    persistExpanded();
+    render();
+  }
+  function collapseAllLocal() {
+    expanded.clear();
+    persistExpanded();
+    render();
   }
 
   window.addEventListener('message', (e) => {
@@ -48,13 +111,9 @@
       expanded = new Set(m.expanded || []);
       render();
     } else if (m.type === 'expandAll') {
-      byKey.forEach((n) => n.isDir && expanded.add(n.key));
-      persistExpanded();
-      render();
+      expandAllLocal();
     } else if (m.type === 'collapseAll') {
-      expanded.clear();
-      persistExpanded();
-      render();
+      collapseAllLocal();
     }
   });
 
@@ -114,20 +173,15 @@
       }),
     );
 
-    const twist = document.createElement('span');
-    twist.className = 'twist';
-    if (n.isDir) twist.appendChild(svgEl(ICON.chevron));
-    row.appendChild(twist);
-
-    const icon = document.createElement('span');
-    icon.className = 'icon';
+    const ico = document.createElement('span');
+    ico.className = 'icon';
     if (n.emoji) {
-      icon.classList.add('emoji');
-      icon.textContent = n.emoji;
+      ico.classList.add('emoji');
+      ico.textContent = n.emoji;
     } else {
-      icon.appendChild(svgEl(n.isDir ? ICON.folder : ICON.file));
+      ico.appendChild(icon(n.isDir ? 'folder' : 'file'));
     }
-    row.appendChild(icon);
+    row.appendChild(ico);
 
     const label = document.createElement('span');
     label.className = 'label';
@@ -141,17 +195,12 @@
       row.appendChild(g);
     }
 
-    twist.addEventListener('click', (ev) => {
-      ev.stopPropagation();
-      toggle(n);
-    });
     row.addEventListener('click', () => {
       selectedKey = n.key;
       if (n.isDir) toggle(n);
       else vscode.postMessage({ type: 'open', key: n.key });
       markSelection();
     });
-    // Let VS Code show its native menu (via data-vscode-context); just track selection.
     row.addEventListener('contextmenu', () => {
       selectedKey = n.key;
       markSelection();
@@ -255,5 +304,6 @@
     if (selectedKey) vscode.postMessage({ type: 'action', action, key: selectedKey });
   }
 
+  renderToolbar();
   vscode.postMessage({ type: 'ready' });
 })();

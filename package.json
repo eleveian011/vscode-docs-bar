@@ -2,7 +2,7 @@
   "name": "vscode-docs-bar",
   "displayName": "Docs Bar",
   "description": "A Notion-style Markdown navigator for VS Code: emoji page icons, display-name aliases, custom drag sort, hidden entries, git status — in a webview sidebar beside the built-in Explorer.",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "publisher": "eleveian011",
   "license": "MIT",
   "repository": {
@@ -29,20 +29,21 @@
   "contributes": {
     "viewsContainers": {
       "activitybar": [
-        { "id": "docsBarContainer", "title": "Docs Bar", "icon": "media/icon.svg" }
+        { "id": "docsBarContainer", "title": "​", "icon": "media/icon.svg" }
       ]
     },
     "views": {
       "docsBarContainer": [
-        { "id": "docsBar", "name": "Docs", "type": "webview" }
+        { "id": "docsBar", "name": "", "type": "webview" }
       ]
     },
     "commands": [
-      { "command": "docsBar.newFile", "title": "Docs Bar: 新建文件", "icon": { "light": "media/lucide/newfile-light.svg", "dark": "media/lucide/newfile-dark.svg" } },
-      { "command": "docsBar.newFolder", "title": "Docs Bar: 新建目录", "icon": { "light": "media/lucide/newfolder-light.svg", "dark": "media/lucide/newfolder-dark.svg" } },
-      { "command": "docsBar.expandAll", "title": "Docs Bar: 全部展开", "icon": { "light": "media/lucide/expand-light.svg", "dark": "media/lucide/expand-dark.svg" } },
-      { "command": "docsBar.collapseAll", "title": "Docs Bar: 全部收起", "icon": { "light": "media/lucide/collapse-light.svg", "dark": "media/lucide/collapse-dark.svg" } },
-      { "command": "docsBar.refresh", "title": "Docs Bar: 刷新", "icon": { "light": "media/lucide/refresh-light.svg", "dark": "media/lucide/refresh-dark.svg" } },
+      { "command": "docsBar.newFile", "title": "Docs Bar: 新建文件" },
+      { "command": "docsBar.newFolder", "title": "Docs Bar: 新建目录" },
+      { "command": "docsBar.expandAll", "title": "Docs Bar: 全部展开" },
+      { "command": "docsBar.collapseAll", "title": "Docs Bar: 全部收起" },
+      { "command": "docsBar.refresh", "title": "Docs Bar: 刷新" },
+      { "command": "docsBar.unhideAll", "title": "Docs Bar: 取消所有隐藏" },
       { "command": "docsBar.ctx.open", "title": "打开" },
       { "command": "docsBar.ctx.newFile", "title": "新建文件" },
       { "command": "docsBar.ctx.newFolder", "title": "新建目录" },
@@ -59,13 +60,6 @@
       { "command": "docsBar.ctx.delete", "title": "删除" }
     ],
     "menus": {
-      "view/title": [
-        { "command": "docsBar.newFile", "when": "view == docsBar", "group": "navigation@1" },
-        { "command": "docsBar.newFolder", "when": "view == docsBar", "group": "navigation@2" },
-        { "command": "docsBar.expandAll", "when": "view == docsBar", "group": "navigation@3" },
-        { "command": "docsBar.collapseAll", "when": "view == docsBar", "group": "navigation@4" },
-        { "command": "docsBar.refresh", "when": "view == docsBar", "group": "navigation@5" }
-      ],
       "webview/context": [
         { "command": "docsBar.ctx.open", "when": "webviewSection == 'docsBarItem' && !docIsDir", "group": "1_open@1" },
         { "command": "docsBar.ctx.newFile", "when": "webviewSection == 'docsBarItem' && docIsDir", "group": "1_open@1" },
@@ -161,7 +155,6 @@
     "@types/node": "^20.14.0",
     "@types/vscode": "^1.84.0",
     "esbuild": "^0.23.0",
-    "lucide-static": "^1.0.0",
     "typescript": "^5.5.0",
     "unicode-emoji-json": "^0.9.0"
   }

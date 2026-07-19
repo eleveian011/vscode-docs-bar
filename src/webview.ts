@@ -108,7 +108,26 @@ export class DocsBarView implements vscode.WebviewViewProvider {
       case 'reorder':
         await this.handleReorder(m.moved ?? [], m.parentKey ?? '', m.beforeKey ?? undefined);
         return;
+      case 'more':
+        await this.showMore();
+        return;
     }
+  }
+
+  private async showMore(): Promise<void> {
+    type Item = vscode.QuickPickItem & { act: string };
+    const items: Item[] = [
+      { label: '$(refresh) 刷新', act: 'refresh' },
+      { label: '$(eye) 取消所有隐藏', act: 'unhide' },
+    ];
+    const pick = await vscode.window.showQuickPick(items, { title: 'Docs Bar', placeHolder: '更多操作' });
+    if (!pick) {
+      return;
+    }
+    if (pick.act === 'unhide') {
+      await store.clearHidden();
+    }
+    await this.refresh();
   }
 
   // ---- actions ----
@@ -314,6 +333,7 @@ export class DocsBarView implements vscode.WebviewViewProvider {
 <link href="${cssUri}" rel="stylesheet">
 </head>
 <body>
+<div id="toolbar"></div>
 <div id="app"></div>
 <script nonce="${nonce}" src="${jsUri}"></script>
 </body>

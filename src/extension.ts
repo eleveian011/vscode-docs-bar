@@ -41,6 +41,7 @@ export function activate(context: vscode.ExtensionContext): void {
   cmd('docsBar.expandAll', () => view.expandAll());
   cmd('docsBar.collapseAll', () => view.collapseAll());
   cmd('docsBar.refresh', () => void view.refresh());
+  cmd('docsBar.unhideAll', () => void view.runAction('unhideAll', ''));
 
   // Native context-menu items (contributed to webview/context). VS Code passes
   // the row's data-vscode-context object as the first argument.
