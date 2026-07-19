@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.5.0
+
+- Dividers: add one from the toolbar's 更多 menu, drag it anywhere, delete it via its right-click menu. Stored as tokens inside the per-folder order.
+- Glyph icons (folder/file) muted further toward a Notion-like light grey; emoji left at full color.
+- Panel title restored (the native view header strip can't be removed by an extension).
+
+## 0.4.0
+
+- In-webview centered toolbar; per-row chevron removed; icons muted.
+
+## 0.3.0
+
+- Native context menu (webview/context), Lucide icons, jump-free drag indicator.
+
 ## 0.2.0
 
 Reborn as a Notion-style webview.

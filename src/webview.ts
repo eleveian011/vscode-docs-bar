@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as store from './store';
 import { pickEmoji } from './emoji';
 import { gitStatusMap } from './git';
-import { buildForest, reorderWithin } from './tree';
+import { buildForest, currentOrderTokens, reorderTokens, removeToken } from './tree';
 import { exists, isDirectory, uniqueDest } from './util';
 
 const EXPANDED_KEY = 'docsBar.expanded';
@@ -106,7 +106,12 @@ export class DocsBarView implements vscode.WebviewViewProvider {
         await this.action(m.action, m.key);
         return;
       case 'reorder':
-        await this.handleReorder(m.moved ?? [], m.parentKey ?? '', m.beforeKey ?? undefined);
+        await this.handleReorder(
+          m.moved ?? [],
+          m.parentKey ?? '',
+          m.beforeKey ?? undefined,
+          m.movedParentKey ?? '',
+        );
         return;
       case 'more':
         await this.showMore();
@@ -117,6 +122,7 @@ export class DocsBarView implements vscode.WebviewViewProvider {
   private async showMore(): Promise<void> {
     type Item = vscode.QuickPickItem & { act: string };
     const items: Item[] = [
+      { label: '$(remove) 新建分割线', act: 'divider' },
       { label: '$(refresh) 刷新', act: 'refresh' },
       { label: '$(eye) 取消所有隐藏', act: 'unhide' },
     ];
@@ -126,7 +132,21 @@ export class DocsBarView implements vscode.WebviewViewProvider {
     }
     if (pick.act === 'unhide') {
       await store.clearHidden();
+    } else if (pick.act === 'divider') {
+      await this.addDivider();
     }
+    await this.refresh();
+  }
+
+  private async addDivider(): Promise<void> {
+    const folder = store.getRoots()[0];
+    const tokens = await currentOrderTokens(folder);
+    await store.setOrderNames(folder, [store.newDividerToken(), ...tokens]);
+  }
+
+  /** Invoked by the divider's native context-menu "删除分割线". */
+  async deleteDivider(parentKey: string, token: string): Promise<void> {
+    await removeToken(this.keyToUri(parentKey), token);
     await this.refresh();
   }
 
@@ -285,36 +305,56 @@ export class DocsBarView implements vscode.WebviewViewProvider {
     movedKeys: string[],
     parentKey: string,
     beforeKey: string | undefined,
+    movedParentKey: string,
   ): Promise<void> {
     if (!movedKeys.length) {
       return;
     }
-    const sources = movedKeys.map((k) => this.keyToUri(k));
-    const folder = this.keyToUri(parentKey);
-    const before = beforeKey ? path.basename(this.keyToUri(beforeKey).fsPath) : undefined;
+    const targetFolder = this.keyToUri(parentKey);
+    const sourceFolder = this.keyToUri(movedParentKey);
+    const crossParent = movedParentKey !== parentKey;
 
-    const movedNames: string[] = [];
-    for (const src of sources) {
-      if (folder.toString() === src.toString() || folder.fsPath.startsWith(src.fsPath + path.sep)) {
+    const movedTokens: string[] = [];
+    for (const key of movedKeys) {
+      if (store.isDividerToken(key)) {
+        if (crossParent) {
+          await removeToken(sourceFolder, key);
+        }
+        movedTokens.push(key);
         continue;
       }
-      const srcParent = vscode.Uri.joinPath(src, '..');
-      let finalName = path.basename(src.fsPath);
-      if (srcParent.toString() !== folder.toString()) {
-        const dest = await uniqueDest(folder, finalName);
+      const src = this.keyToUri(key);
+      let name = path.basename(src.fsPath);
+      if (crossParent) {
+        if (
+          targetFolder.toString() === src.toString() ||
+          targetFolder.fsPath.startsWith(src.fsPath + path.sep)
+        ) {
+          continue; // don't move a folder into itself/descendant
+        }
+        const dest = await uniqueDest(targetFolder, name);
         try {
           await vscode.workspace.fs.rename(src, dest, { overwrite: false });
         } catch {
           continue;
         }
-        finalName = path.basename(dest.fsPath);
+        name = path.basename(dest.fsPath);
         await store.rekey(src, dest);
+        await removeToken(sourceFolder, path.basename(src.fsPath));
       }
-      movedNames.push(finalName);
+      movedTokens.push(name);
     }
-    if (movedNames.length) {
-      await reorderWithin(folder, movedNames, before);
+
+    let beforeToken: string | undefined;
+    if (!beforeKey) {
+      beforeToken = undefined;
+    } else if (store.isDividerToken(beforeKey)) {
+      beforeToken = beforeKey;
+    } else {
+      beforeToken = path.basename(this.keyToUri(beforeKey).fsPath);
     }
+
+    await reorderTokens(targetFolder, movedTokens, beforeToken);
     await this.refresh();
   }
 

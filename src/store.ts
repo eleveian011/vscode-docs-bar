@@ -89,6 +89,20 @@ export async function clearHidden(): Promise<void> {
   await cfg().update('hidden', [], target());
 }
 
+// ---- dividers ----
+// Dividers live inside a parent's order array as special tokens (a filename can
+// never contain a NUL byte, so they never collide with real entries).
+
+const DIV_PREFIX = '\\u0000div:';
+
+export function isDividerToken(token: string): boolean {
+  return token.startsWith(DIV_PREFIX);
+}
+
+export function newDividerToken(): string {
+  return DIV_PREFIX + Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36);
+}
+
 // ---- manual order ----
 
 export function getOrderNames(parent: vscode.Uri): string[] {

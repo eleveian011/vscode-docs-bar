@@ -59,6 +59,17 @@ export function activate(context: vscode.ExtensionContext): void {
       }),
     );
   }
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      'docsBar.ctx.deleteDivider',
+      (ctx?: { docKey?: string; docParentKey?: string }) => {
+        if (ctx?.docKey !== undefined) {
+          void view.deleteDivider(ctx.docParentKey ?? '', ctx.docKey);
+        }
+      },
+    ),
+  );
 }
 
 export function deactivate(): void {

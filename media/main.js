@@ -158,11 +158,35 @@
 
   function rowEl(n, depth) {
     const row = document.createElement('div');
-    row.className = 'row' + (n.isDir && expanded.has(n.key) ? ' expanded' : '');
-    if (n.key === selectedKey) row.classList.add('selected');
     row.style.setProperty('--d', depth);
     row.dataset.key = n.key;
     row.draggable = true;
+
+    if (n.isDivider) {
+      row.className = 'row divider';
+      row.setAttribute(
+        'data-vscode-context',
+        JSON.stringify({
+          webviewSection: 'docsBarDivider',
+          docKey: n.key,
+          docParentKey: n.parentKey,
+          preventDefaultContextMenuItems: true,
+        }),
+      );
+      const line = document.createElement('div');
+      line.className = 'divider-line';
+      row.appendChild(line);
+      row.addEventListener('dragstart', (ev) => {
+        ev.dataTransfer.setData('text/plain', n.key);
+        ev.dataTransfer.effectAllowed = 'move';
+      });
+      row.addEventListener('dragover', (ev) => onDragOver(ev, row, n));
+      row.addEventListener('drop', (ev) => onDrop(ev, row, n));
+      return row;
+    }
+
+    row.className = 'row' + (n.isDir && expanded.has(n.key) ? ' expanded' : '');
+    if (n.key === selectedKey) row.classList.add('selected');
     row.setAttribute(
       'data-vscode-context',
       JSON.stringify({
@@ -276,7 +300,9 @@
         beforeKey = i >= 0 && i + 1 < sibs.length ? sibs[i + 1].key : null;
       }
     }
-    vscode.postMessage({ type: 'reorder', moved: [movedKey], parentKey, beforeKey });
+    const movedNode = byKey.get(movedKey);
+    const movedParentKey = movedNode ? movedNode.parentKey : '';
+    vscode.postMessage({ type: 'reorder', moved: [movedKey], parentKey, beforeKey, movedParentKey });
   }
 
   app.addEventListener('dragend', clearHints);
