@@ -70,6 +70,11 @@ export function activate(context: vscode.ExtensionContext): void {
       },
     ),
   );
+
+  // Toolbar "更多" native-menu items.
+  cmd('docsBar.ctx.newDivider', () => void view.newDivider());
+  cmd('docsBar.ctx.refresh', () => void view.refresh());
+  cmd('docsBar.ctx.unhideAll', () => void view.runAction('unhideAll', ''));
 }
 
 export function deactivate(): void {

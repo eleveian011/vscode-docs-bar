@@ -113,35 +113,15 @@ export class DocsBarView implements vscode.WebviewViewProvider {
           m.movedParentKey ?? '',
         );
         return;
-      case 'more':
-        await this.showMore();
-        return;
     }
   }
 
-  private async showMore(): Promise<void> {
-    type Item = vscode.QuickPickItem & { act: string };
-    const items: Item[] = [
-      { label: '$(remove) 新建分割线', act: 'divider' },
-      { label: '$(refresh) 刷新', act: 'refresh' },
-      { label: '$(eye) 取消所有隐藏', act: 'unhide' },
-    ];
-    const pick = await vscode.window.showQuickPick(items, { title: 'Docs Bar', placeHolder: '更多操作' });
-    if (!pick) {
-      return;
-    }
-    if (pick.act === 'unhide') {
-      await store.clearHidden();
-    } else if (pick.act === 'divider') {
-      await this.addDivider();
-    }
-    await this.refresh();
-  }
-
-  private async addDivider(): Promise<void> {
+  /** Toolbar "更多" → native menu item. Inserts a divider at the top of the root. */
+  async newDivider(): Promise<void> {
     const folder = store.getRoots()[0];
     const tokens = await currentOrderTokens(folder);
     await store.setOrderNames(folder, [store.newDividerToken(), ...tokens]);
+    await this.refresh();
   }
 
   /** Invoked by the divider's native context-menu "删除分割线". */

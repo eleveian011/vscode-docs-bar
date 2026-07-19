@@ -2,7 +2,7 @@
   "name": "vscode-docs-bar",
   "displayName": "Docs Bar",
   "description": "A Notion-style Markdown navigator for VS Code: emoji page icons, display-name aliases, custom drag sort, hidden entries, git status — in a webview sidebar beside the built-in Explorer.",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "publisher": "eleveian011",
   "license": "MIT",
   "repository": {
@@ -58,7 +58,10 @@
       { "command": "docsBar.ctx.hide", "title": "在 Docs Bar 中隐藏" },
       { "command": "docsBar.ctx.reveal", "title": "在 Finder 中显示" },
       { "command": "docsBar.ctx.delete", "title": "删除" },
-      { "command": "docsBar.ctx.deleteDivider", "title": "删除分割线" }
+      { "command": "docsBar.ctx.deleteDivider", "title": "删除分割线" },
+      { "command": "docsBar.ctx.newDivider", "title": "新建分割线" },
+      { "command": "docsBar.ctx.refresh", "title": "刷新" },
+      { "command": "docsBar.ctx.unhideAll", "title": "取消所有隐藏" }
     ],
     "menus": {
       "webview/context": [
@@ -76,7 +79,10 @@
         { "command": "docsBar.ctx.hide", "when": "webviewSection == 'docsBarItem'", "group": "5_more@1" },
         { "command": "docsBar.ctx.reveal", "when": "webviewSection == 'docsBarItem'", "group": "5_more@2" },
         { "command": "docsBar.ctx.delete", "when": "webviewSection == 'docsBarItem'", "group": "9_danger@1" },
-        { "command": "docsBar.ctx.deleteDivider", "when": "webviewSection == 'docsBarDivider'", "group": "9_danger@1" }
+        { "command": "docsBar.ctx.deleteDivider", "when": "webviewSection == 'docsBarDivider'", "group": "9_danger@1" },
+        { "command": "docsBar.ctx.newDivider", "when": "webviewSection == 'docsBarMore'", "group": "1_more@1" },
+        { "command": "docsBar.ctx.refresh", "when": "webviewSection == 'docsBarMore'", "group": "2_more@1" },
+        { "command": "docsBar.ctx.unhideAll", "when": "webviewSection == 'docsBarMore'", "group": "2_more@2" }
       ],
       "commandPalette": [
         { "command": "docsBar.ctx.open", "when": "false" },
@@ -93,7 +99,10 @@
         { "command": "docsBar.ctx.hide", "when": "false" },
         { "command": "docsBar.ctx.reveal", "when": "false" },
         { "command": "docsBar.ctx.delete", "when": "false" },
-        { "command": "docsBar.ctx.deleteDivider", "when": "false" }
+        { "command": "docsBar.ctx.deleteDivider", "when": "false" },
+        { "command": "docsBar.ctx.newDivider", "when": "false" },
+        { "command": "docsBar.ctx.refresh", "when": "false" },
+        { "command": "docsBar.ctx.unhideAll", "when": "false" }
       ]
     },
     "configuration": {
