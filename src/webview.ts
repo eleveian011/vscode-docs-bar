@@ -99,7 +99,7 @@ export class DocsBarView implements vscode.WebviewViewProvider {
       case 'ready':
         return void this.refresh();
       case 'open':
-        return void (await vscode.window.showTextDocument(this.keyToUri(m.key)));
+        return void (await vscode.commands.executeCommand('vscode.open', this.keyToUri(m.key)));
       case 'saveExpanded':
         return void this.ctx.workspaceState.update(EXPANDED_KEY, m.expanded ?? []);
       case 'action':
@@ -183,7 +183,7 @@ export class DocsBarView implements vscode.WebviewViewProvider {
       await vscode.workspace.fs.createDirectory(dest);
     } else {
       await vscode.workspace.fs.writeFile(dest, new Uint8Array());
-      await vscode.window.showTextDocument(dest);
+      await vscode.commands.executeCommand('vscode.open', dest);
     }
     await this.refresh();
   }
@@ -196,7 +196,7 @@ export class DocsBarView implements vscode.WebviewViewProvider {
       case 'newFolder':
         return this.newEntry(uri, true);
       case 'open':
-        await vscode.window.showTextDocument(uri);
+        await vscode.commands.executeCommand('vscode.open', uri);
         return;
 
       case 'rename':
